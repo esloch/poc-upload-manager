@@ -24,7 +24,7 @@ services:
       - ${MINIO_PORT_1}:9000
       - ${MINIO_PORT_2}:9090
     volumes:
-      - ./collector/data/:/data
+      - ../collector/data/:/data
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
       interval: 60s

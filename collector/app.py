@@ -1,9 +1,13 @@
 import time
 import os
 import datetime
+from pathlib import Path
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
+from loguru import logger
 
+
+ROOT_DIR = Path(__file__).resolve(strict=True).parent.parent
 
 class FileHandler(FileSystemEventHandler):
     """
@@ -26,20 +30,23 @@ class FileHandler(FileSystemEventHandler):
         Returns:
             None
         """
-        print(event.src_path)
+        
+        # TODO: Fix path root to write into data directory
+        logger.info(event.src_path)
         # print(dir(event))
         # breakpoint()
         if event.is_directory:
             file_name = os.path.basename(event.src_path)
             today = datetime.datetime.today()
             year = today.year
-            print(f"New file created: {file_name}, {today}, {year}")
+            logger.info(f"New file created: {file_name}, {today}, {year}")
             return
 
 if __name__ == '__main__':
-    # print(os.getcwd())
+    logger.debug(os.getcwd())
+    logger.add("file.log", rotation="500 MB")  # Add a file logger with rotation
     observer = Observer()
-    observer.schedule(FileHandler(), path='/workspace/repos/infodengue/minio-collector/collector/data/partners')
+    observer.schedule(FileHandler(), path=f"{ROOT_DIR}/collector/data/partners")
     observer.start()
     try:
         while True:
