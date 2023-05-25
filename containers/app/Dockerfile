@@ -8,7 +8,7 @@ RUN /env-miniocollector/bin/pip install --upgrade pip
 RUN /env-miniocollector/bin/pip install watchdog loguru
 
 # Copy source code
-COPY containers/collector /opt/services/collector
+COPY ./collector /opt/services/collector
 
 WORKDIR /opt/services/collector
 
