@@ -36,7 +36,7 @@ services:
       retries: 5
       start_period: 40s
 
-  app:
+  collector:
     build:
       context: ".."
       dockerfile: "containers/app/Dockerfile"
@@ -45,3 +45,28 @@ services:
       - ../collector:/opt/services/collector
     depends_on:
       - minio
+
+  redis:
+    container_name: redis
+    image: redis:5.0.5
+    hostname: redis
+    environment:
+      - REDIS_PASSWORD=password123
+    ports:
+      - "6379:6379"
+
+  worker:
+    image: celery:latest
+    depends_on:
+      - redis
+    volumes:
+      - ../worker:/app
+    working_dir: /app
+    command: celery -A celery_app.celery worker --loglevel=info
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+
+volumes:
+  redis_data:
+  
