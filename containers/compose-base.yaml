@@ -1,14 +1,18 @@
 version: '3.4'
 
 services:
-
   minio:
-    platform: linux/amd64
-    image: quay.io/minio/minio
+    build:
+      context: ".."
+      dockerfile: "containers/minio/Dockerfile"
     restart: unless-stopped
     env_file:
       - ../.env
     environment:
+      MINIO_USERNAME: deploy
+      MINIO_GROUPNAME: deploy
+      MINIO_GID: 1000
+      MINIO_UID: 1000
       MINIO_ROOT_USER: administrador
       MINIO_ROOT_PASSWORD: adminpsswd
       MINIO_PORT_1: 9000
@@ -16,7 +20,7 @@ services:
       MINIO_ENDPOINT: http://minio:9090
     command: [
       "server",
-      "/data",
+      "opt/services/collector/data",
       "--console-address",
       ":9090"
     ]
@@ -24,10 +28,20 @@ services:
       - ${MINIO_PORT_1}:9000
       - ${MINIO_PORT_2}:9090
     volumes:
-      - ../collector/data/:/data
+      - ../collector:/opt/services/collector
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
       interval: 60s
       timeout: 10s
       retries: 5
-      start_period: 40s  # requires docker-compose 3.4
+      start_period: 40s
+
+  app:
+    build:
+      context: ".."
+      dockerfile: "containers/app/Dockerfile"
+    restart: unless-stopped
+    volumes:
+      - ../collector:/opt/services/collector
+    depends_on:
+      - minio
